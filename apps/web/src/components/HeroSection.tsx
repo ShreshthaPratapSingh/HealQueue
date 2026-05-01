@@ -34,14 +34,14 @@ export default function HeroSection() {
           </motion.p>
 
           <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7, delay: 0.3 }} className="flex flex-col gap-4 sm:flex-row sm:justify-center lg:justify-start">
-            <a href="#contact" className="group inline-flex items-center justify-center gap-2 rounded-2xl bg-primary px-8 py-4 text-base font-semibold text-white shadow-xl shadow-primary/25 transition-all duration-300 hover:bg-primary-dark hover:shadow-2xl hover:-translate-y-0.5 active:scale-[0.98]" id="hero-get-started">
+            <button onClick={() => document.querySelector("#contact")?.scrollIntoView({ behavior: "smooth" })} className="group inline-flex items-center justify-center gap-2 rounded-2xl bg-primary px-8 py-4 text-base font-semibold text-white shadow-xl shadow-primary/25 transition-all duration-300 hover:bg-primary-dark hover:shadow-2xl hover:-translate-y-0.5 active:scale-[0.98] cursor-pointer" id="hero-get-started">
               Get Started
               <svg className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6" /></svg>
-            </a>
-            <a href="#about" className="group inline-flex items-center justify-center gap-2 rounded-2xl border border-border bg-white px-8 py-4 text-base font-semibold text-text-primary shadow-sm transition-all duration-300 hover:border-primary/30 hover:shadow-md hover:-translate-y-0.5" id="hero-learn-more">
+            </button>
+            <button onClick={() => document.querySelector("#about")?.scrollIntoView({ behavior: "smooth" })} className="group inline-flex items-center justify-center gap-2 rounded-2xl border border-border bg-white px-8 py-4 text-base font-semibold text-text-primary shadow-sm transition-all duration-300 hover:border-primary/30 hover:shadow-md hover:-translate-y-0.5 cursor-pointer" id="hero-learn-more">
               Learn More
               <svg className="h-4 w-4 transition-transform duration-300 group-hover:translate-y-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M19 14l-7 7m0 0l-7-7m7 7V3" /></svg>
-            </a>
+            </button>
           </motion.div>
 
           {/* Trust indicators */}

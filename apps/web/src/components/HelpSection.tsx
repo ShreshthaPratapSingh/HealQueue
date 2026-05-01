@@ -86,10 +86,10 @@ export default function HelpSection() {
         {/* CTA */}
         <motion.div initial={{ opacity: 0 }} animate={headerInView ? { opacity: 1 } : {}} transition={{ duration: 0.7, delay: 0.5 }} className="mt-12 text-center">
           <p className="text-text-secondary mb-4">Still have questions?</p>
-          <a href="#contact" className="inline-flex items-center gap-2 rounded-xl bg-primary px-6 py-3 text-sm font-semibold text-white shadow-md shadow-primary/25 transition-all duration-300 hover:bg-primary-dark hover:shadow-lg hover:-translate-y-0.5">
+          <button onClick={() => document.querySelector("#contact")?.scrollIntoView({ behavior: "smooth" })} className="inline-flex items-center gap-2 rounded-xl bg-primary px-6 py-3 text-sm font-semibold text-white shadow-md shadow-primary/25 transition-all duration-300 hover:bg-primary-dark hover:shadow-lg hover:-translate-y-0.5 cursor-pointer">
             Contact Us
             <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6" /></svg>
-          </a>
+          </button>
         </motion.div>
       </div>
     </section>
