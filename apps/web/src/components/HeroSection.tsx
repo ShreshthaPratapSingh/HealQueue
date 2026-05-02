@@ -5,16 +5,14 @@ import Image from "next/image";
 
 export default function HeroSection() {
   return (
-    <section id="home" className="relative min-h-screen overflow-hidden bg-gradient-to-b from-primary-50/50 via-white to-white pt-24">
-      {/* Background decorations */}
+    <section id="home" className="relative min-h-screen overflow-hidden bg-linear-to-b from-primary-50/50 via-white to-white pt-24">
       <div className="pointer-events-none absolute inset-0">
-        <div className="absolute -top-40 -right-40 h-[500px] w-[500px] rounded-full bg-primary/[0.04] blur-3xl" />
-        <div className="absolute top-1/3 -left-40 h-[400px] w-[400px] rounded-full bg-primary/[0.03] blur-3xl" />
+        <div className="absolute -top-40 -right-40 h-125 w-125 rounded-full bg-primary/4 blur-3xl" />
+        <div className="absolute top-1/3 -left-40 h-100 w-100 rounded-full bg-primary/3 blur-3xl" />
         <div className="absolute inset-0 opacity-[0.015]" style={{ backgroundImage: "radial-gradient(circle, #3B82F6 1px, transparent 1px)", backgroundSize: "40px 40px" }} />
       </div>
 
       <div className="relative mx-auto flex max-w-7xl flex-col-reverse items-center gap-12 px-6 py-16 lg:flex-row lg:gap-16 lg:px-8 lg:py-24">
-        {/* Text Content */}
         <div className="flex-1 text-center lg:text-left">
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }} className="mb-6 inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary-50 px-4 py-1.5">
             <span className="relative flex h-2 w-2">
@@ -26,7 +24,7 @@ export default function HeroSection() {
 
           <motion.h1 initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7, delay: 0.1 }} className="mb-6 text-4xl font-extrabold leading-[1.1] tracking-tight text-text-primary sm:text-5xl lg:text-6xl">
             Real-Time Doctor{" "}
-            <span className="bg-gradient-to-r from-primary to-primary-dark bg-clip-text text-transparent">Queue Management</span>
+            <span className="bg-linear-to-r from-primary to-primary-dark bg-clip-text text-transparent">Queue Management</span>
           </motion.h1>
 
           <motion.p initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7, delay: 0.2 }} className="mb-10 max-w-xl text-lg leading-relaxed text-text-secondary sm:text-xl lg:mx-0 mx-auto">

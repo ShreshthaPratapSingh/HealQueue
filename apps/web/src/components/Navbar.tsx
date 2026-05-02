@@ -119,12 +119,13 @@ export default function Navbar() {
 
         {/* Right Side - Auth Buttons */}
         <div className="hidden items-center gap-3 md:flex">
-          <button
+          <Link
+            href='/login'
             className="rounded-xl border border-border px-5 py-2.5 text-sm font-semibold text-text-primary transition-all duration-200 hover:border-primary hover:text-primary hover:shadow-sm cursor-pointer"
             id="login-button"
           >
             Login
-          </button>
+          </Link>
           <button
             className="rounded-xl bg-primary px-5 py-2.5 text-sm font-semibold text-white shadow-md shadow-primary/25 transition-all duration-200 hover:bg-primary-dark hover:shadow-lg hover:shadow-primary/30 active:scale-[0.98] cursor-pointer"
             id="signup-button"

@@ -1,3 +1,5 @@
+"use client";
+
 import Link from "next/link";
 
 const quickLinks = [
@@ -44,7 +46,7 @@ export default function Footer() {
             <ul className="space-y-3">
               {quickLinks.map((link) => (
                 <li key={link.href}>
-                  <a href={link.href} className="text-sm text-gray-400 transition-colors duration-200 hover:text-primary-light">{link.label}</a>
+                  <button onClick={() => document.querySelector(link.href)?.scrollIntoView({ behavior: "smooth" })} className="text-sm text-gray-400 transition-colors duration-200 hover:text-primary-light cursor-pointer">{link.label}</button>
                 </li>
               ))}
             </ul>
