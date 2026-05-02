@@ -59,11 +59,10 @@ export default function Navbar() {
       initial={{ y: -100 }}
       animate={{ y: 0 }}
       transition={{ duration: 0.6, ease: "easeOut" }}
-      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
-        scrolled
-          ? "bg-white/80 backdrop-blur-xl shadow-[0_1px_3px_rgba(0,0,0,0.05)] border-b border-border-light"
-          : "bg-transparent"
-      }`}
+      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${scrolled
+        ? "bg-white/80 backdrop-blur-xl shadow-[0_1px_3px_rgba(0,0,0,0.05)] border-b border-border-light"
+        : "bg-transparent"
+        }`}
     >
       <nav className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4 lg:px-8">
         {/* Logo */}
@@ -99,11 +98,10 @@ export default function Navbar() {
               key={link.href}
               href={link.href}
               onClick={(e) => handleNavClick(e, link.href)}
-              className={`relative rounded-lg px-4 py-2 text-sm font-medium transition-all duration-200 ${
-                activeSection === link.href.slice(1)
-                  ? "text-primary"
-                  : "text-text-secondary hover:text-text-primary hover:bg-bg-alt"
-              }`}
+              className={`relative rounded-lg px-4 py-2 text-sm font-medium transition-all duration-200 ${activeSection === link.href.slice(1)
+                ? "text-primary"
+                : "text-text-secondary hover:text-text-primary hover:bg-bg-alt"
+                }`}
             >
               {link.label}
               {activeSection === link.href.slice(1) && (
@@ -126,12 +124,13 @@ export default function Navbar() {
           >
             Login
           </Link>
-          <button
+          <Link
+            href='/signup'
             className="rounded-xl bg-primary px-5 py-2.5 text-sm font-semibold text-white shadow-md shadow-primary/25 transition-all duration-200 hover:bg-primary-dark hover:shadow-lg hover:shadow-primary/30 active:scale-[0.98] cursor-pointer"
             id="signup-button"
           >
             Sign Up
-          </button>
+          </Link>
         </div>
 
         {/* Mobile Menu Toggle */}
@@ -143,23 +142,20 @@ export default function Navbar() {
         >
           <div className="flex flex-col gap-1.5">
             <span
-              className={`block h-0.5 w-5 bg-text-primary transition-all duration-300 ${
-                mobileMenuOpen
-                  ? "translate-y-2 rotate-45"
-                  : ""
-              }`}
+              className={`block h-0.5 w-5 bg-text-primary transition-all duration-300 ${mobileMenuOpen
+                ? "translate-y-2 rotate-45"
+                : ""
+                }`}
             />
             <span
-              className={`block h-0.5 w-5 bg-text-primary transition-all duration-300 ${
-                mobileMenuOpen ? "opacity-0" : ""
-              }`}
+              className={`block h-0.5 w-5 bg-text-primary transition-all duration-300 ${mobileMenuOpen ? "opacity-0" : ""
+                }`}
             />
             <span
-              className={`block h-0.5 w-5 bg-text-primary transition-all duration-300 ${
-                mobileMenuOpen
-                  ? "-translate-y-2 -rotate-45"
-                  : ""
-              }`}
+              className={`block h-0.5 w-5 bg-text-primary transition-all duration-300 ${mobileMenuOpen
+                ? "-translate-y-2 -rotate-45"
+                : ""
+                }`}
             />
           </div>
         </button>
@@ -184,11 +180,10 @@ export default function Navbar() {
                   initial={{ opacity: 0, x: -20 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: i * 0.05 }}
-                  className={`rounded-lg px-4 py-3 text-sm font-medium transition-colors ${
-                    activeSection === link.href.slice(1)
-                      ? "bg-primary-50 text-primary"
-                      : "text-text-secondary hover:bg-bg-alt hover:text-text-primary"
-                  }`}
+                  className={`rounded-lg px-4 py-3 text-sm font-medium transition-colors ${activeSection === link.href.slice(1)
+                    ? "bg-primary-50 text-primary"
+                    : "text-text-secondary hover:bg-bg-alt hover:text-text-primary"
+                    }`}
                 >
                   {link.label}
                 </motion.a>

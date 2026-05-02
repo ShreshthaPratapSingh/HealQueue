@@ -3,14 +3,17 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 export default function LoginPage() {
   const [form, setForm] = useState({ email: "", password: "" });
   const [showPassword, setShowPassword] = useState(false);
+  const router = useRouter();
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     // TODO: implement login logic
+    router.push("/patient");
   };
 
   return (
@@ -237,7 +240,6 @@ export default function LoginPage() {
           </button>
         </motion.div>
 
-        {/* Sign Up link */}
         <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.5, delay: 0.3 }} className="mt-8 text-center text-sm text-text-secondary">
           Don&apos;t have an account?{" "}
           <Link
