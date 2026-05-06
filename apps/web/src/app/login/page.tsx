@@ -13,7 +13,7 @@ export default function LoginPage() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     // TODO: implement login logic
-    router.push("/patient");
+    router.push("/receptionist");
   };
 
   return (
