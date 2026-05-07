@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 export default function SignupPage() {
     const [form, setForm] = useState({
@@ -13,10 +14,33 @@ export default function SignupPage() {
         password: "",
     });
     const [showPassword, setShowPassword] = useState(false);
+    const router = useRouter();
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        // TODO: implement signup logic
+        try{
+            const response = await fetch('http://localhost:5000/api/auth/signup', {
+                method: "POST",
+                headers: {
+                    "Content-type": "application/json"
+                },
+                body: JSON.stringify(form)
+            })
+    
+            const data = await response.json();
+            if(response.ok){
+                console.log("Singup successfull!");
+                router.push("/login")
+            }
+            else{
+                console.log(data.message);
+            }
+
+        }
+        catch(err){
+            console.log("failed");
+        }
+        
     };
 
     const inputClass =

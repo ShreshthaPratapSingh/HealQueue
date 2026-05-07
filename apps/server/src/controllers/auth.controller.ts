@@ -10,19 +10,20 @@ export const signup = async (
     res: Response
 ) => {
     try {
-        const { firstName, lastName, email, password } = req.body;
+        const { firstName, lastName, phone, email, password } = req.body;
 
         const hashedPassword = await hashPassword(password)
 
         await User.create({
             firstName,
             lastName,
+            phone,
             email,
             password: hashedPassword,
             role: "PATIENT"
         })
         
-        res.json({ message: "SignUp successfull!!" })
+        res.status(200).json({ message: "SignUp successfull!!" })
     }
     catch(err) {
         res.status(500).json({ message: "Server error "})
