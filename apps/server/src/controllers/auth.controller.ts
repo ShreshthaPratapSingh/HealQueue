@@ -1,4 +1,3 @@
-import express from "express";
 import type {Request, Response} from "express";
 import type { LoginBody, SignupBody } from "../types/auth.types.js";
 import { hashPassword } from "../utils/hash.js";
