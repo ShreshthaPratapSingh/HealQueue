@@ -14,11 +14,15 @@ export default function SignupPage() {
         password: "",
     });
     const [showPassword, setShowPassword] = useState(false);
+    const [buttonContent, setButtonContent] = useState("Create Account")
     const router = useRouter();
+
+    const buttonCSS = "w-full rounded-xl bg-primary px-6 py-4 text-sm font-semibold text-white shadow-lg shadow-primary/25 transition-all duration-300 hover:bg-primary-dark hover:shadow-xl hover:shadow-primary/30 active:scale-[0.98] cursor-pointer"
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         try{
+            setButtonContent("Processing...");
             const response = await fetch('http://localhost:5000/api/auth/signup', {
                 method: "POST",
                 headers: {
@@ -34,6 +38,7 @@ export default function SignupPage() {
             }
             else{
                 console.log(data.message);
+                setButtonContent("Create Account")
             }
 
         }
@@ -370,10 +375,10 @@ export default function SignupPage() {
                         {/* Submit */}
                         <button
                             type="submit"
-                            className="w-full rounded-xl bg-primary px-6 py-4 text-sm font-semibold text-white shadow-lg shadow-primary/25 transition-all duration-300 hover:bg-primary-dark hover:shadow-xl hover:shadow-primary/30 active:scale-[0.98] cursor-pointer"
+                            className={buttonCSS}
                             id="signup-submit"
                         >
-                            Create Account
+                            {buttonContent}
                         </button>
                     </form>
 
