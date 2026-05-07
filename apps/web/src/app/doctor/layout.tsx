@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useAuth } from "@/hooks/useAuth";
 
 const sidebarLinks = [
   {
@@ -63,9 +64,18 @@ const sidebarLinks = [
 ];
 
 export default function DoctorLayout({ children }: { children: React.ReactNode }) {
+  const { loading } = useAuth("DOCTOR");
   const pathname = usePathname();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [isAvailable, setIsAvailable] = useState(true);
+
+  if (loading) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-bg-alt">
+        <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+      </div>
+    );
+  }
 
   return (
     <div className="flex min-h-screen bg-bg-alt">

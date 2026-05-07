@@ -1,4 +1,4 @@
-import type {Request, Response} from "express";
+import type { Request, Response } from "express";
 import type { LoginBody, SignupBody } from "../types/auth.types.js";
 import { hashPassword } from "../utils/hash.js";
 import User from "../models/user.model.js";
@@ -22,40 +22,47 @@ export const signup = async (
             password: hashedPassword,
             role: "PATIENT"
         })
-        
+
         res.status(200).json({ message: "SignUp successfull!!" })
     }
-    catch(err) {
-        res.status(500).json({ message: "Server error "})
+    catch (err) {
+        res.status(500).json({ message: "Server error " })
     }
+}
+
+export const me = (
+    req: Request,
+    res: Response
+) => {
+    res.json({ user: req.user });
 }
 
 export const login = async (
     req: Request<{}, {}, LoginBody>,
     res: Response
 ) => {
-    try{
+    try {
         const { email, password } = req.body;
 
         const user = await User.findOne({ email });
 
-        if (!user){
-            return res.status(400).json({ message: "Invalid credentials!" })
+        if (!user) {
+            return res.status(400).json({ message: "Invalid credentials!" });
         }
 
         const match = await bcrypt.compare(password, user.password as string);
 
-        if (!match){
-            return res.status(400).json({ message: "Invalid credentials!" })
+        if (!match) {
+            return res.status(400).json({ message: "Invalid credentials!" });
         }
 
-        const token = generateToken({ id: user._id, role: user.role}, { expiresIn: "7d"})
+        const token = generateToken({ id: user._id, role: user.role }, { expiresIn: "7d" });
 
-        res.cookie("token", token, { httpOnly: true })
+        res.cookie("token", token, { httpOnly: true });
 
-        res.json({ role: user.role })
+        res.status(200).json({ role: user.role });
     }
-    catch(err){
+    catch (err) {
         res.status(500).json({ message: err })
     }
 }

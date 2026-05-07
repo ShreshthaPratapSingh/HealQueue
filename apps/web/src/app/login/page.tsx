@@ -8,12 +8,37 @@ import { useRouter } from "next/navigation";
 export default function LoginPage() {
   const [form, setForm] = useState({ email: "", password: "" });
   const [showPassword, setShowPassword] = useState(false);
+  const [buttonContent, setButtonContent] = useState("Sign In")
   const router = useRouter();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // TODO: implement login logic
-    router.push("/receptionist");
+    setButtonContent("Signing In...");
+    try {
+      const response = await fetch("http://localhost:5000/api/auth/login", {
+        method: "POST",
+        headers: {
+          "Content-type": "application/json"
+        },
+        credentials: "include",
+        body: JSON.stringify(form),
+      });
+
+      const data = await response.json();
+
+      console.log(response);
+
+      if (response.ok){
+        console.log("login successfull!");
+        router.push(`${(data.role)}`.toLowerCase());
+      }
+      else{
+        setButtonContent("Sign In")
+      }
+    }
+    catch(err){
+      console.log(err);
+    }
   };
 
   return (
@@ -213,7 +238,7 @@ export default function LoginPage() {
               className="w-full rounded-xl bg-primary px-6 py-4 text-sm font-semibold text-white shadow-lg shadow-primary/25 transition-all duration-300 hover:bg-primary-dark hover:shadow-xl hover:shadow-primary/30 active:scale-[0.98] cursor-pointer"
               id="login-submit"
             >
-              Sign In
+              {buttonContent}
             </button>
           </form>
 
