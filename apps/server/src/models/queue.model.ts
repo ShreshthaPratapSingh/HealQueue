@@ -14,6 +14,7 @@ const queueSchema = new mongoose.Schema({
     },
 
     currentToken: {
+        type: Number,
         required: true,
         default: 0,
     },
