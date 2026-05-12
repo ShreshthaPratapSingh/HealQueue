@@ -118,6 +118,13 @@ export default function Navbar() {
         {/* Right Side - Auth Buttons */}
         <div className="hidden items-center gap-3 md:flex">
           <Link
+            href='/applyasdoctor'
+            className="rounded-xl border border-accent-green/30 bg-accent-green-light px-4 py-2.5 text-sm font-semibold text-accent-green transition-all duration-200 hover:bg-accent-green hover:text-white hover:shadow-md hover:shadow-accent-green/20 active:scale-[0.98] cursor-pointer"
+            id="join-doctor-button"
+          >
+            Join as Doctor
+          </Link>
+          <Link
             href='/login'
             className="rounded-xl border border-border px-5 py-2.5 text-sm font-semibold text-text-primary transition-all duration-200 hover:border-primary hover:text-primary hover:shadow-sm cursor-pointer"
             id="login-button"
@@ -189,12 +196,15 @@ export default function Navbar() {
                 </motion.a>
               ))}
               <div className="mt-3 flex flex-col gap-2 border-t border-border-light pt-4">
-                <button className="rounded-xl border border-border px-5 py-2.5 text-sm font-semibold text-text-primary transition-colors hover:border-primary hover:text-primary cursor-pointer">
+                <Link href="/applyasdoctor" className="rounded-xl border border-accent-green/30 bg-accent-green-light px-5 py-2.5 text-sm font-semibold text-accent-green text-center transition-colors hover:bg-accent-green hover:text-white cursor-pointer">
+                  Join as Doctor
+                </Link>
+                <Link href="/login" className="rounded-xl border border-border px-5 py-2.5 text-sm font-semibold text-text-primary text-center transition-colors hover:border-primary hover:text-primary cursor-pointer">
                   Login
-                </button>
-                <button className="rounded-xl bg-primary px-5 py-2.5 text-sm font-semibold text-white shadow-md shadow-primary/25 transition-colors hover:bg-primary-dark cursor-pointer">
+                </Link>
+                <Link href="/signup" className="rounded-xl bg-primary px-5 py-2.5 text-sm font-semibold text-white text-center shadow-md shadow-primary/25 transition-colors hover:bg-primary-dark cursor-pointer">
                   Sign Up
-                </button>
+                </Link>
               </div>
             </div>
           </motion.div>
