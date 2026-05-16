@@ -5,11 +5,47 @@ import { motion, AnimatePresence } from "framer-motion";
 
 const steps = ["Personal Info", "Professional", "Clinic", "Documents", "Account"];
 
-function Input({ label, type = "text", placeholder, required = true }: { label: string; type?: string; placeholder: string; required?: boolean }) {
+function Input({
+  label,
+  type = "text",
+  placeholder,
+  value,
+  onChange,
+  required = true,
+}: {
+  label: string;
+
+  type?: string;
+
+  placeholder: string;
+
+  value: string;
+
+  onChange: (
+    e: React.ChangeEvent<HTMLInputElement>
+  ) => void;
+
+  required?: boolean;
+}) {
   return (
     <div>
-      <label className="text-xs font-medium text-text-muted mb-1.5 block">{label}{required && <span className="text-accent-red ml-0.5">*</span>}</label>
-      <input type={type} placeholder={placeholder} className="w-full rounded-xl border border-border-light bg-bg-alt px-4 py-2.5 text-sm text-text-primary outline-none placeholder:text-text-muted focus:border-primary/40 focus:bg-white focus:shadow-sm transition-all" />
+      <label className="text-xs font-medium text-text-muted mb-1.5 block">
+        {label}
+
+        {required && (
+          <span className="text-accent-red ml-0.5">
+            *
+          </span>
+        )}
+      </label>
+
+      <input
+        type={type}
+        placeholder={placeholder}
+        value={value}
+        onChange={onChange}
+        className="w-full rounded-xl border border-border-light bg-bg-alt px-4 py-2.5 text-sm"
+      />
     </div>
   );
 }
@@ -26,28 +62,99 @@ function Select({ label, options }: { label: string; options: string[] }) {
   );
 }
 
-function UploadCard({ label, desc }: { label: string; desc: string }) {
-  const [uploaded, setUploaded] = useState(false);
+function UploadCard({
+  label,
+  desc,
+  onFileSelect,
+}: {
+  label: string;
+  desc: string;
+  onFileSelect: (file: File) => void;
+}) {
+  const [uploaded, setUploaded] =
+    useState(false);
+
+  const [fileName, setFileName] =
+    useState("");
+
   return (
-    <div onClick={() => setUploaded(!uploaded)} className={`group rounded-xl border-2 border-dashed p-5 text-center transition-all cursor-pointer ${uploaded ? "border-accent-green/40 bg-accent-green-light/30" : "border-border bg-bg-alt hover:border-primary/30 hover:bg-primary-50/20"}`}>
+    <label
+      className={`group rounded-xl border-2 border-dashed p-5 text-center transition-all cursor-pointer block ${uploaded
+        ? "border-accent-green/40 bg-accent-green-light/30"
+        : "border-border bg-bg-alt hover:border-primary/30 hover:bg-primary-50/20"
+        }`}
+    >
+      {/* REAL FILE INPUT */}
+      <input
+        type="file"
+        className="hidden"
+        onChange={(e) => {
+          const file = e.target.files?.[0];
+
+          if (!file) return;
+
+          setUploaded(true);
+
+          setFileName(file.name);
+
+          onFileSelect(file);
+        }}
+      />
+
       {uploaded ? (
         <div className="flex flex-col items-center gap-2">
           <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-accent-green-light">
-            <svg className="h-5 w-5 text-accent-green" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+            <svg
+              className="h-5 w-5 text-accent-green"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              strokeWidth={2}
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+              />
+            </svg>
           </div>
-          <p className="text-xs font-semibold text-accent-green">{label} uploaded</p>
-          <p className="text-[10px] text-text-muted">Click to replace</p>
+
+          <p className="text-xs font-semibold text-accent-green">
+            {label} uploaded
+          </p>
+
+          <p className="text-[10px] text-text-muted">
+            {fileName}
+          </p>
         </div>
       ) : (
         <div className="flex flex-col items-center gap-2">
           <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-white border border-border-light group-hover:border-primary/20">
-            <svg className="h-5 w-5 text-text-muted group-hover:text-primary transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5" /></svg>
+            <svg
+              className="h-5 w-5 text-text-muted group-hover:text-primary transition-colors"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              strokeWidth={1.5}
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5"
+              />
+            </svg>
           </div>
-          <p className="text-xs font-semibold text-text-primary">{label}</p>
-          <p className="text-[10px] text-text-muted">{desc}</p>
+
+          <p className="text-xs font-semibold text-text-primary">
+            {label}
+          </p>
+
+          <p className="text-[10px] text-text-muted">
+            {desc}
+          </p>
         </div>
       )}
-    </div>
+    </label>
   );
 }
 
@@ -85,9 +192,117 @@ export default function ApplicationForm() {
   const [step, setStep] = useState(0);
   const [submitted, setSubmitted] = useState(false);
 
+  const [formData, setFormData] = useState({
+    firstName: "",
+    lastName: "",
+
+    email: "",
+    phone: "",
+
+    gender: "",
+    dob: "",
+
+    specialization: "",
+    qualification: "",
+
+    yearsOfExperience: "",
+
+    currentHospital: "",
+
+    currentPosition: "",
+
+    consultationFee: "",
+
+    languagesSpoken: "",
+
+    medicalLicenseNumber: "",
+
+    clinicName: "",
+    clinicAddress: "",
+
+    city: "",
+    state: "",
+
+    zipCode: "",
+
+    clinicPhone: "",
+
+    workingHours: "",
+
+    numberOfStaff: "",
+
+    facilities: [] as string[],
+
+    password: "",
+    confirmPassword: "",
+  });
+
+  const [files, setFiles] = useState({
+    profilePhoto: null as File | null,
+
+    medicalLicense: null as File | null,
+
+    governmentId: null as File | null,
+
+    degreeCertificate: null as File | null,
+
+    clinicRegistration: null as File | null,
+  });
+
   const next = () => { if (step < steps.length - 1) setStep(step + 1); };
   const prev = () => { if (step > 0) setStep(step - 1); };
-  const handleSubmit = () => setSubmitted(true);
+
+  const handleSubmit = async () => {
+    try {
+      const submitData = new FormData();
+
+      // TEXT FIELDS
+      Object.entries(formData).forEach(
+        ([key, value]) => {
+          if (Array.isArray(value)) {
+            value.forEach((item) => {
+              submitData.append(key, item);
+            });
+          } else {
+            submitData.append(
+              key,
+              value.toString()
+            );
+          }
+        }
+      );
+
+      // FILES
+      Object.entries(files).forEach(
+        ([key, value]) => {
+          if (value) {
+            submitData.append(key, value);
+          }
+        }
+      );
+
+      const response = await fetch(
+        "http://localhost:5000/api/doctor-applications/apply",
+        {
+          method: "POST",
+
+          credentials: "include",
+
+          body: submitData,
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error(
+          "Failed to submit application"
+        );
+      }
+
+      setSubmitted(true);
+    } catch (error) {
+      console.log(error);
+    }
+  };
 
   if (submitted) return <div className="mx-auto max-w-4xl px-6 lg:px-8 py-16" id="apply-form"><div className="rounded-2xl border border-border-light bg-white p-8"><SuccessScreen /></div></div>;
 
@@ -112,7 +327,7 @@ export default function ApplicationForm() {
             ))}
           </div>
           <div className="h-1.5 w-full rounded-full bg-bg-alt overflow-hidden">
-            <motion.div animate={{ width: `${((step + 1) / steps.length) * 100}%` }} transition={{ duration: 0.4 }} className="h-full rounded-full bg-gradient-to-r from-primary to-primary-light" />
+            <motion.div animate={{ width: `${((step + 1) / steps.length) * 100}%` }} transition={{ duration: 0.4 }} className="h-full rounded-full bg-linear-to-r from-primary to-primary-light" />
           </div>
         </div>
 
@@ -126,24 +341,81 @@ export default function ApplicationForm() {
                   <h3 className="text-lg font-bold text-text-primary mb-1">Personal Information</h3>
                   <p className="text-xs text-text-muted mb-6">Tell us about yourself</p>
                   <div className="grid gap-4 sm:grid-cols-2">
-                    <Input label="First Name" placeholder="Rajesh" />
-                    <Input label="Last Name" placeholder="Kumar" />
-                    <Input label="Email Address" type="email" placeholder="rajesh@email.com" />
-                    <Input label="Phone Number" type="tel" placeholder="+91 98765 43210" />
+                    <Input
+                      label="First Name"
+                      placeholder="Rajesh"
+                      value={formData.firstName}
+                      onChange={(e) =>
+                        setFormData({
+                          ...formData,
+                          firstName: e.target.value,
+                        })
+                      }
+                    />
+                    <Input
+                      label="Last Name"
+                      placeholder="Kumar"
+                      value={formData.lastName}
+                      onChange={(e) =>
+                        setFormData({
+                          ...formData,
+                          lastName: e.target.value,
+                        })
+                      }
+                    />
+                    <Input
+                      label="Email Address"
+                      type="email"
+                      placeholder="rajesh@email.com"
+                      value={formData.email}
+                      onChange={(e) =>
+                        setFormData({
+                          ...formData,
+                          email: e.target.value,
+                        })
+                      }
+                    />
+                    <Input
+                      label="Phone Number"
+                      type="tel"
+                      placeholder="+91 98765 43210"
+                      value={formData.phone}
+                      onChange={(e) =>
+                        setFormData({
+                          ...formData,
+                          phone: e.target.value,
+                        })
+                      }
+                    />
                     <Select label="Gender" options={["Male", "Female", "Other"]} />
-                    <Input label="Date of Birth" type="date" placeholder="" />
+                    <Input
+                      label="Date of Birth"
+                      type="date"
+                      placeholder=""
+                      value={formData.dob}
+                      onChange={(e) =>
+                        setFormData({
+                          ...formData,
+                          dob: e.target.value,
+                        })
+                      }
+                    />
                   </div>
                   <div className="mt-5">
-                    <label className="text-xs font-medium text-text-muted mb-1.5 block">Profile Photo</label>
-                    <div className="flex items-center gap-4 rounded-xl border border-border-light bg-bg-alt p-4">
-                      <div className="flex h-14 w-14 items-center justify-center rounded-xl bg-primary-50 text-primary shrink-0">
-                        <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M6.827 6.175A2.31 2.31 0 015.186 7.23c-.38.054-.757.112-1.134.175C2.999 7.58 2.25 8.507 2.25 9.574V18a2.25 2.25 0 002.25 2.25h15A2.25 2.25 0 0021.75 18V9.574c0-1.067-.75-1.994-1.802-2.169a47.865 47.865 0 00-1.134-.175 2.31 2.31 0 01-1.64-1.055l-.822-1.316a2.192 2.192 0 00-1.736-1.039 48.774 48.774 0 00-5.232 0 2.192 2.192 0 00-1.736 1.039l-.821 1.316z" /><path strokeLinecap="round" strokeLinejoin="round" d="M16.5 12.75a4.5 4.5 0 11-9 0 4.5 4.5 0 019 0z" /></svg>
-                      </div>
-                      <div>
-                        <p className="text-xs font-semibold text-text-primary">Upload profile photo</p>
-                        <p className="text-[10px] text-text-muted">JPG, PNG up to 5MB</p>
-                      </div>
-                    </div>
+                    <label className="text-xs font-medium text-text-muted mb-2 block">
+                      Profile Photo
+                    </label>
+
+                    <UploadCard
+                      label="Profile Photo"
+                      desc="JPG, PNG up to 5MB"
+                      onFileSelect={(file) => {
+                        setFiles({
+                          ...files,
+                          profilePhoto: file,
+                        });
+                      }}
+                    />
                   </div>
                 </div>
               )}
@@ -155,12 +427,63 @@ export default function ApplicationForm() {
                   <div className="grid gap-4 sm:grid-cols-2">
                     <Select label="Specialization" options={["General Physician", "Cardiologist", "Dermatologist", "Orthopedic", "Pediatrician", "Gynecologist", "ENT", "Neurologist", "Ophthalmologist", "Dentist"]} />
                     <Select label="Years of Experience" options={["0-2 years", "3-5 years", "6-10 years", "11-15 years", "15+ years"]} />
-                    <Input label="Medical License Number" placeholder="MCI-XXXXX" />
+                    <Input
+                      label="Medical License Number"
+                      placeholder="MCI-XXXXX"
+                      value={formData.medicalLicenseNumber}
+                      onChange={(e) =>
+                        setFormData({
+                          ...formData,
+                          medicalLicenseNumber: e.target.value,
+                        })
+                      }
+                    />
                     <Select label="Qualification" options={["MBBS", "MD", "MS", "DM", "MCh", "DNB", "BDS", "MDS"]} />
-                    <Input label="Hospital / Clinic Name" placeholder="Current workplace" />
-                    <Input label="Current Position" placeholder="e.g. Senior Consultant" />
-                    <Input label="Consultation Fee (₹)" type="number" placeholder="500" />
-                    <Input label="Languages Spoken" placeholder="English, Hindi" />
+                    <Input
+                      label="Hospital / Clinic Name"
+                      placeholder="Current workplace"
+                      value={formData.currentHospital}
+                      onChange={(e) =>
+                        setFormData({
+                          ...formData,
+                          currentHospital: e.target.value,
+                        })
+                      }
+                    />
+                    <Input
+                      label="Current Position"
+                      placeholder="e.g. Senior Consultant"
+                      value={formData.currentPosition}
+                      onChange={(e) =>
+                        setFormData({
+                          ...formData,
+                          currentPosition: e.target.value,
+                        })
+                      }
+                    />
+                    <Input
+                      label="Consultation Fee (₹)"
+                      type="number"
+                      placeholder="500"
+                      value={formData.consultationFee}
+                      onChange={(e) =>
+                        setFormData({
+                          ...formData,
+                          consultationFee: e.target.value,
+                        })
+                      }
+                    />
+                    <Input
+                      label="Languages Spoken"
+                      placeholder="English, Hindi"
+                      value={formData.languagesSpoken}
+                      onChange={(e) =>
+                        setFormData({
+                          ...formData,
+                          languagesSpoken: e.target.value,
+                        })
+                      }
+                    />
                   </div>
                 </div>
               )}
@@ -170,13 +493,88 @@ export default function ApplicationForm() {
                   <h3 className="text-lg font-bold text-text-primary mb-1">Clinic Information</h3>
                   <p className="text-xs text-text-muted mb-6">Where will you be using HealQueue?</p>
                   <div className="grid gap-4 sm:grid-cols-2">
-                    <div className="sm:col-span-2"><Input label="Clinic Name" placeholder="Your clinic's name" /></div>
-                    <div className="sm:col-span-2"><Input label="Clinic Address" placeholder="Full address" /></div>
-                    <Input label="City" placeholder="e.g. Mumbai" />
-                    <Input label="State" placeholder="e.g. Maharashtra" />
-                    <Input label="ZIP Code" placeholder="400001" />
-                    <Input label="Clinic Phone" type="tel" placeholder="+91 22 XXXX XXXX" />
-                    <Input label="Working Hours" placeholder="e.g. 9:00 AM – 5:00 PM" />
+                    <div className="sm:col-span-2">
+                      <Input
+                        label="Clinic Name"
+                        placeholder="Your clinic's name"
+                        value={formData.clinicName}
+                        onChange={(e) =>
+                          setFormData({
+                            ...formData,
+                            clinicName: e.target.value,
+                          })
+                        }
+                      />
+                    </div>
+                    <div className="sm:col-span-2">
+                      <Input
+                        label="Clinic Address"
+                        placeholder="Full address"
+                        value={formData.clinicAddress}
+                        onChange={(e) =>
+                          setFormData({
+                            ...formData,
+                            clinicAddress: e.target.value,
+                          })
+                        }
+                      />
+                    </div>
+                    <Input
+                      label="City"
+                      placeholder="e.g. Mumbai"
+                      value={formData.city}
+                      onChange={(e) =>
+                        setFormData({
+                          ...formData,
+                          city: e.target.value,
+                        })
+                      }
+                    />
+                    <Input
+                      label="State"
+                      placeholder="e.g. Maharashtra"
+                      value={formData.state}
+                      onChange={(e) =>
+                        setFormData({
+                          ...formData,
+                          state: e.target.value,
+                        })
+                      }
+                    />
+                    <Input
+                      label="ZIP Code"
+                      placeholder="400001"
+                      value={formData.zipCode}
+                      onChange={(e) =>
+                        setFormData({
+                          ...formData,
+                          zipCode: e.target.value,
+                        })
+                      }
+                    />
+                    <Input
+                      label="Clinic Phone"
+                      type="tel"
+                      placeholder="+91 22 XXXX XXXX"
+                      value={formData.lastName}
+                      onChange={(e) =>
+                        setFormData({
+                          ...formData,
+                          lastName: e.target.value,
+                        })
+                      }
+                    />
+                    <Input
+                      label="Working Hours"
+                      placeholder="e.g. 9:00 AM – 5:00 PM"
+                      value={formData.workingHours}
+                      onChange={(e) =>
+                        setFormData({
+                          ...formData,
+                          workingHours: e.target.value,
+                        })
+                      }
+                    />
                     <Select label="Number of Staff" options={["1-3", "4-10", "11-20", "20+"]} />
                   </div>
                   <div className="mt-4">
@@ -198,10 +596,46 @@ export default function ApplicationForm() {
                   <h3 className="text-lg font-bold text-text-primary mb-1">Documents Upload</h3>
                   <p className="text-xs text-text-muted mb-6">Upload your verification documents. All files are securely encrypted.</p>
                   <div className="grid gap-4 sm:grid-cols-2">
-                    <UploadCard label="Medical License" desc="PDF or image, max 10MB" />
-                    <UploadCard label="Government ID" desc="Aadhaar, PAN, or Passport" />
-                    <UploadCard label="Degree Certificate" desc="MBBS / MD / MS certificate" />
-                    <UploadCard label="Clinic Registration" desc="Registration proof" />
+                    <UploadCard
+                      label="Medical License"
+                      desc="PDF or image, max 10MB"
+                      onFileSelect={(file) => {
+                        setFiles({
+                          ...files,
+                          medicalLicense: file,
+                        });
+                      }}
+                    />
+                    <UploadCard
+                      label="Government ID"
+                      desc="Aadhaar, PAN, or Passport"
+                      onFileSelect={(file) => {
+                        setFiles({
+                          ...files,
+                          governmentId: file,
+                        });
+                      }}
+                    />
+                    <UploadCard
+                      label="Degree Certificate"
+                      desc="MBBS / MD / MS certificate"
+                      onFileSelect={(file) => {
+                        setFiles({
+                          ...files,
+                          degreeCertificate: file,
+                        });
+                      }}
+                    />
+                    <UploadCard
+                      label="Clinic Registration"
+                      desc="Registration proof"
+                      onFileSelect={(file) => {
+                        setFiles({
+                          ...files,
+                          clinicRegistration: file,
+                        });
+                      }}
+                    />
                   </div>
                   <div className="mt-5 rounded-xl border border-primary/20 bg-primary-50/50 p-4 flex items-start gap-3">
                     <svg className="h-5 w-5 text-primary shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z" /></svg>
@@ -218,8 +652,30 @@ export default function ApplicationForm() {
                   <h3 className="text-lg font-bold text-text-primary mb-1">Account Setup</h3>
                   <p className="text-xs text-text-muted mb-6">Create your login credentials</p>
                   <div className="grid gap-4 sm:grid-cols-2">
-                    <Input label="Password" type="password" placeholder="Min 8 characters" />
-                    <Input label="Confirm Password" type="password" placeholder="Re-enter password" />
+                    <Input
+                      label="Password"
+                      type="password"
+                      placeholder="Min 8 characters"
+                      value={formData.password}
+                      onChange={(e) =>
+                        setFormData({
+                          ...formData,
+                          password: e.target.value,
+                        })
+                      }
+                    />
+                    <Input
+                      label="Confirm Password"
+                      type="password"
+                      placeholder="Re-enter password"
+                      value={formData.confirmPassword}
+                      onChange={(e) =>
+                        setFormData({
+                          ...formData,
+                          confirmPassword: e.target.value,
+                        })
+                      }
+                    />
                   </div>
                   <div className="mt-6 space-y-3">
                     {[
