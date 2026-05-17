@@ -1,6 +1,8 @@
+import dotenv from "dotenv";
+dotenv.config();
+
 import express from "express";
 import cookieParser from "cookie-parser";
-import dotenv from "dotenv";
 import cors from "cors";
 
 import { connectDB } from "./config/db.js";
@@ -8,9 +10,6 @@ import { connectDB } from "./config/db.js";
 import authRoutes from "./routes/auth.routes.js";
 import queueRoutes from "./routes/queue.routes.js";
 import doctorApplicationRoutes from "./routes/doctorApplication.routes.js";
-
-
-dotenv.config();
 
 const app = express();
 
@@ -24,7 +23,7 @@ app.use(cors({
 connectDB();
 
 app.use("/api/auth", authRoutes);
-app.use("api/queue", queueRoutes);
+app.use("/api/queue", queueRoutes);
 app.use("/api/doctor-applications", doctorApplicationRoutes);
 
 app.listen(5000, () => {

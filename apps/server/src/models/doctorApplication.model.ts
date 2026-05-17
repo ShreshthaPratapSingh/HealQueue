@@ -28,7 +28,7 @@ export interface IDoctorApplication extends Document {
     specialization: string;
     qualification: string;
 
-    yearsOfExperience: number;
+    yearsOfExperience: string;
 
     currentHospital: string;
 
@@ -56,7 +56,7 @@ export interface IDoctorApplication extends Document {
 
     workingHours: string;
 
-    numberOfStaff: number;
+    numberOfStaff: string;
 
     facilities: string[];
   };
@@ -152,7 +152,7 @@ const doctorApplicationSchema =
         },
 
         yearsOfExperience: {
-          type: Number,
+          type: String,
           required: true,
         },
 
@@ -217,7 +217,7 @@ const doctorApplicationSchema =
         },
 
         numberOfStaff: {
-          type: Number,
+          type: String,
         },
 
         facilities: {

@@ -15,7 +15,7 @@ const userModel = new mongoose.Schema({
 
     role: {
         type: String,
-        enum: ["PATIENT", "DOCTOR", "RECEPTIONIST", "ADMIN"],
+        enum: ["PATIENT", "DOCTOR", "RECEPTIONIST", "ADMIN", "PENDING_DOCTOR"],
         default: "PATIENT"
     },
 
@@ -23,7 +23,7 @@ const userModel = new mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId,
         ref: "Clinic",
         required: function(){
-            return this.role !== "PATIENT"
+            return this.role !== "PATIENT" && this.role !== "PENDING_DOCTOR"
         }
     }
 }, { timestamps: true });

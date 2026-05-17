@@ -50,11 +50,11 @@ function Input({
   );
 }
 
-function Select({ label, options }: { label: string; options: string[] }) {
+function Select({ label, options, value, onChange }: { label: string; options: string[]; value: string; onChange: (e: React.ChangeEvent<HTMLSelectElement>) => void }) {
   return (
     <div>
       <label className="text-xs font-medium text-text-muted mb-1.5 block">{label}<span className="text-accent-red ml-0.5">*</span></label>
-      <select className="w-full rounded-xl border border-border-light bg-bg-alt px-4 py-2.5 text-sm text-text-primary outline-none focus:border-primary/40 focus:bg-white focus:shadow-sm transition-all cursor-pointer appearance-none">
+      <select value={value} onChange={onChange} className="w-full rounded-xl border border-border-light bg-bg-alt px-4 py-2.5 text-sm text-text-primary outline-none focus:border-primary/40 focus:bg-white focus:shadow-sm transition-all cursor-pointer appearance-none">
         <option value="">Select {label.toLowerCase()}</option>
         {options.map((o) => <option key={o} value={o}>{o}</option>)}
       </select>
@@ -66,16 +66,15 @@ function UploadCard({
   label,
   desc,
   onFileSelect,
+  currentFile,
 }: {
   label: string;
   desc: string;
   onFileSelect: (file: File) => void;
+  currentFile: File | null;
 }) {
-  const [uploaded, setUploaded] =
-    useState(false);
-
-  const [fileName, setFileName] =
-    useState("");
+  const uploaded = currentFile !== null;
+  const fileName = currentFile?.name ?? "";
 
   return (
     <label
@@ -92,10 +91,6 @@ function UploadCard({
           const file = e.target.files?.[0];
 
           if (!file) return;
-
-          setUploaded(true);
-
-          setFileName(file.name);
 
           onFileSelect(file);
         }}
@@ -387,7 +382,7 @@ export default function ApplicationForm() {
                         })
                       }
                     />
-                    <Select label="Gender" options={["Male", "Female", "Other"]} />
+                    <Select label="Gender" options={["Male", "Female", "Other"]} value={formData.gender} onChange={(e) => setFormData({ ...formData, gender: e.target.value })} />
                     <Input
                       label="Date of Birth"
                       type="date"
@@ -409,6 +404,7 @@ export default function ApplicationForm() {
                     <UploadCard
                       label="Profile Photo"
                       desc="JPG, PNG up to 5MB"
+                      currentFile={files.profilePhoto}
                       onFileSelect={(file) => {
                         setFiles({
                           ...files,
@@ -425,8 +421,8 @@ export default function ApplicationForm() {
                   <h3 className="text-lg font-bold text-text-primary mb-1">Professional Information</h3>
                   <p className="text-xs text-text-muted mb-6">Your medical credentials and experience</p>
                   <div className="grid gap-4 sm:grid-cols-2">
-                    <Select label="Specialization" options={["General Physician", "Cardiologist", "Dermatologist", "Orthopedic", "Pediatrician", "Gynecologist", "ENT", "Neurologist", "Ophthalmologist", "Dentist"]} />
-                    <Select label="Years of Experience" options={["0-2 years", "3-5 years", "6-10 years", "11-15 years", "15+ years"]} />
+                    <Select label="Specialization" options={["General Physician", "Cardiologist", "Dermatologist", "Orthopedic", "Pediatrician", "Gynecologist", "ENT", "Neurologist", "Ophthalmologist", "Dentist"]} value={formData.specialization} onChange={(e) => setFormData({ ...formData, specialization: e.target.value })} />
+                    <Select label="Years of Experience" options={["0-2 years", "3-5 years", "6-10 years", "11-15 years", "15+ years"]} value={formData.yearsOfExperience} onChange={(e) => setFormData({ ...formData, yearsOfExperience: e.target.value })} />
                     <Input
                       label="Medical License Number"
                       placeholder="MCI-XXXXX"
@@ -438,7 +434,7 @@ export default function ApplicationForm() {
                         })
                       }
                     />
-                    <Select label="Qualification" options={["MBBS", "MD", "MS", "DM", "MCh", "DNB", "BDS", "MDS"]} />
+                    <Select label="Qualification" options={["MBBS", "MD", "MS", "DM", "MCh", "DNB", "BDS", "MDS"]} value={formData.qualification} onChange={(e) => setFormData({ ...formData, qualification: e.target.value })} />
                     <Input
                       label="Hospital / Clinic Name"
                       placeholder="Current workplace"
@@ -556,11 +552,11 @@ export default function ApplicationForm() {
                       label="Clinic Phone"
                       type="tel"
                       placeholder="+91 22 XXXX XXXX"
-                      value={formData.lastName}
+                      value={formData.clinicPhone}
                       onChange={(e) =>
                         setFormData({
                           ...formData,
-                          lastName: e.target.value,
+                          clinicPhone: e.target.value,
                         })
                       }
                     />
@@ -575,14 +571,25 @@ export default function ApplicationForm() {
                         })
                       }
                     />
-                    <Select label="Number of Staff" options={["1-3", "4-10", "11-20", "20+"]} />
+                    <Select label="Number of Staff" options={["1-3", "4-10", "11-20", "20+"]} value={formData.numberOfStaff} onChange={(e) => setFormData({ ...formData, numberOfStaff: e.target.value })} />
                   </div>
                   <div className="mt-4">
                     <label className="text-xs font-medium text-text-muted mb-2 block">Available Facilities</label>
                     <div className="flex flex-wrap gap-2">
                       {["Pharmacy", "Lab", "X-Ray", "Parking", "WiFi", "Wheelchair Access", "Emergency"].map((f) => (
-                        <label key={f} className="flex items-center gap-1.5 rounded-lg border border-border-light px-3 py-2 text-xs text-text-secondary hover:bg-bg-alt cursor-pointer transition-colors">
-                          <input type="checkbox" className="rounded accent-primary" />
+                        <label key={f} className={`flex items-center gap-1.5 rounded-lg border px-3 py-2 text-xs cursor-pointer transition-colors ${formData.facilities.includes(f) ? "border-primary/40 bg-primary-50/30 text-primary" : "border-border-light text-text-secondary hover:bg-bg-alt"}`}>
+                          <input
+                            type="checkbox"
+                            className="rounded accent-primary"
+                            checked={formData.facilities.includes(f)}
+                            onChange={(e) => {
+                              if (e.target.checked) {
+                                setFormData({ ...formData, facilities: [...formData.facilities, f] });
+                              } else {
+                                setFormData({ ...formData, facilities: formData.facilities.filter((item) => item !== f) });
+                              }
+                            }}
+                          />
                           {f}
                         </label>
                       ))}
@@ -599,6 +606,7 @@ export default function ApplicationForm() {
                     <UploadCard
                       label="Medical License"
                       desc="PDF or image, max 10MB"
+                      currentFile={files.medicalLicense}
                       onFileSelect={(file) => {
                         setFiles({
                           ...files,
@@ -609,6 +617,7 @@ export default function ApplicationForm() {
                     <UploadCard
                       label="Government ID"
                       desc="Aadhaar, PAN, or Passport"
+                      currentFile={files.governmentId}
                       onFileSelect={(file) => {
                         setFiles({
                           ...files,
@@ -619,6 +628,7 @@ export default function ApplicationForm() {
                     <UploadCard
                       label="Degree Certificate"
                       desc="MBBS / MD / MS certificate"
+                      currentFile={files.degreeCertificate}
                       onFileSelect={(file) => {
                         setFiles({
                           ...files,
@@ -629,6 +639,7 @@ export default function ApplicationForm() {
                     <UploadCard
                       label="Clinic Registration"
                       desc="Registration proof"
+                      currentFile={files.clinicRegistration}
                       onFileSelect={(file) => {
                         setFiles({
                           ...files,
