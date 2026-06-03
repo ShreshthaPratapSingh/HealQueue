@@ -7,7 +7,6 @@ export const createApplication = async (
     body: any,
     files: any,
 ) => {
-    // 1. Validate required files exist FIRST (before creating anything)
     const requiredFiles = ["profilePhoto", "medicalLicense", "clinicRegistration", "degreeCertificate", "governmentId"];
     for (const field of requiredFiles) {
         if (!files?.[field]?.[0]) {
@@ -15,18 +14,15 @@ export const createApplication = async (
         }
     }
 
-    // 2. Validate required body fields
     if (!body.email || !body.password) {
         throw new Error("Email and password are required");
     }
 
-    // 3. Check if user with this email already exists
     const existingUser = await User.findOne({ email: body.email });
     if (existingUser) {
         throw new Error("A user with this email already exists");
     }
 
-    // 4. Upload files FIRST (before creating user)
     let profilePhotoUpload: any;
     let medicalLicenseUpload: any;
     let clinicRegistrationUpload: any;
@@ -46,7 +42,6 @@ export const createApplication = async (
         throw new Error(`File upload failed: ${uploadError.message}`);
     }
 
-    // 5. Create user account AFTER uploads succeed
     const hashedPassword = await hashPassword(body.password);
     const newUser = await User.create({
         firstName: body.firstName,
@@ -57,7 +52,6 @@ export const createApplication = async (
         role: "PENDING_DOCTOR",
     });
 
-    // 6. Create the application
     try {
         const application = await DoctorApplication.create({
             userId: newUser._id,
@@ -121,7 +115,6 @@ export const createApplication = async (
         console.log("✅ Application created successfully for:", body.email);
         return application;
     } catch (dbError: any) {
-        // If application creation fails, clean up the user
         await User.findByIdAndDelete(newUser._id);
         console.error("❌ Application creation failed, user cleaned up:", dbError.message);
         throw dbError;

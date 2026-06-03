@@ -10,6 +10,7 @@ import { connectDB } from "./config/db.js";
 import authRoutes from "./routes/auth.routes.js";
 import queueRoutes from "./routes/queue.routes.js";
 import doctorApplicationRoutes from "./routes/doctorApplication.routes.js";
+import adminRoutes from "./routes/admin.routes.js";
 
 const app = express();
 
@@ -25,6 +26,7 @@ connectDB();
 app.use("/api/auth", authRoutes);
 app.use("/api/queue", queueRoutes);
 app.use("/api/doctor-applications", doctorApplicationRoutes);
+app.use("/api/adminRoutes", adminRoutes);
 
 app.listen(5000, () => {
     console.log("Server listening on port 5000");

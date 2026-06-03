@@ -6,9 +6,9 @@ export const authorize = (...roles: string[]) =>
         res: Response,
         next: NextFunction
     ) => {
-    if (!req.user || !roles.includes(req.user.role)){
-        res.status(403).json({ message: "Forbidden" })
-    }
+        if (!req.user || !roles.includes(req.user.role)) {
+            return res.status(403).json({ message: "Forbidden" });
+        }
 
-    next();
-}
+        next();
+    }
