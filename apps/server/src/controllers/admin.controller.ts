@@ -18,3 +18,10 @@ export const sendApplications = async (
         });
     }
 }
+
+export const approveApplications = async (
+    req: Request,
+    res: Response
+) => {
+
+}

@@ -574,7 +574,8 @@ export default function DoctorApplicationsPage() {
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   exit={{ opacity: 0 }}
-                  className="grid grid-cols-1 lg:grid-cols-12 gap-2 lg:gap-4 items-center border-b border-border-light px-6 py-4 transition-colors hover:bg-bg-alt"
+                  onClick={() => setSelectedApp(app)}
+                  className="grid grid-cols-1 lg:grid-cols-12 gap-2 lg:gap-4 items-center border-b border-border-light px-6 py-4 transition-colors hover:bg-bg-alt cursor-pointer"
                 >
                   <div className="lg:col-span-3 flex items-center gap-3">
                     <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary-50 text-sm font-bold text-primary">
@@ -617,13 +618,13 @@ export default function DoctorApplicationsPage() {
                     {app.status === "PENDING" && (
                       <>
                         <button
-                          onClick={() => handleApprove(app._id)}
+                          onClick={(e) => { e.stopPropagation(); handleApprove(app._id); }}
                           className="rounded-lg bg-accent-green/10 px-2.5 py-1.5 text-[11px] font-semibold text-accent-green hover:bg-accent-green hover:text-white transition-all cursor-pointer"
                         >
                           Approve
                         </button>
                         <button
-                          onClick={() => handleReject(app._id)}
+                          onClick={(e) => { e.stopPropagation(); handleReject(app._id); }}
                           className="rounded-lg bg-accent-red/10 px-2.5 py-1.5 text-[11px] font-semibold text-accent-red hover:bg-accent-red hover:text-white transition-all cursor-pointer"
                         >
                           Reject
@@ -631,7 +632,7 @@ export default function DoctorApplicationsPage() {
                       </>
                     )}
                     <button
-                      onClick={() => setSelectedApp(app)}
+                      onClick={(e) => { e.stopPropagation(); setSelectedApp(app); }}
                       className="rounded-lg bg-primary-50 px-2.5 py-1.5 text-[11px] font-semibold text-primary hover:bg-primary hover:text-white transition-all cursor-pointer"
                     >
                       Details
