@@ -343,18 +343,29 @@ export default function DoctorApplicationsPage() {
   };
 
   // TODO: Wire these to actual backend endpoints (e.g. PATCH /api/adminRoutes/applications/:id/approve)
-  const handleApprove = (id: string) => {
-    setApps((prev) =>
-      prev.map((a) => (a._id === id ? { ...a, status: "APPROVED" as const } : a))
-    );
-    setSelectedApp(null);
+  const handleApprove = async (id: string) => {
+    const res = await fetch(`http://localhost:5000/api/adminRoutes/applications/${id}/approve`, {
+      method: "PATCH",
+      credentials: "include",
+    });
+    if (res.ok) {
+      setApps((prev) => prev.map((a) => a._id === id ? { ...a, status: "APPROVED" as const } : a));
+      setSelectedApp(null);
+    }
   };
-  const handleReject = (id: string) => {
-    setApps((prev) =>
-      prev.map((a) => (a._id === id ? { ...a, status: "REJECTED" as const } : a))
-    );
-    setSelectedApp(null);
+  const handleReject = async (id: string) => {
+    const res = await fetch(`http://localhost:5000/api/adminRoutes/applications/${id}/reject`, {
+      method: "PATCH",
+      credentials: "include",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ reason: "Optional rejection reason" }),
+    });
+    if (res.ok) {
+      setApps((prev) => prev.map((a) => a._id === id ? { ...a, status: "REJECTED" as const } : a));
+      setSelectedApp(null);
+    }
   };
+
 
   // Loading skeleton
   if (loading) {
