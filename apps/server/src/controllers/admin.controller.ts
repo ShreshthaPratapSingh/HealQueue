@@ -1,5 +1,6 @@
 import { DoctorApplication } from "../models/doctorApplication.model.js";
 import User from "../models/user.model.js";
+import Clinic from "../models/clinic.model.js";
 import type { Request, Response } from "express";
 
 export const sendApplications = async (
@@ -40,7 +41,21 @@ export const approveApplication = async (
             doctorApplication.reviewedBy = req.user.id;
             doctorApplication.reviewedAt = new Date();
             await doctorApplication.save();
-            await User.findByIdAndUpdate(doctorApplication.userId, { role: "DOCTOR" });
+
+            // Create a clinic from the application's clinic info
+            const clinic = await Clinic.create({
+                name: doctorApplication.clinicInfo.clinicName,
+                address: doctorApplication.clinicInfo.clinicAddress,
+                phone: doctorApplication.clinicInfo.clinicPhone,
+                doctors: [doctorApplication.userId],
+            });
+
+            // Update user role and assign clinic
+            await User.findByIdAndUpdate(doctorApplication.userId, {
+                role: "DOCTOR",
+                clinicId: clinic._id,
+            });
+
             res.status(200).json({ message: "Application approved", application: doctorApplication });
         }
     }

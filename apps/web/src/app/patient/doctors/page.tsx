@@ -1,9 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+
+const API_BASE = "http://localhost:5000/api/queue";
 
 const sidebarLinks = [
     { label: "Doctors", href: "/patient/doctors", icon: <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M9.75 3.104v5.714a2.25 2.25 0 01-.659 1.591L5 14.5M9.75 3.104c-.251.023-.501.05-.75.082m.75-.082a24.301 24.301 0 014.5 0m0 0v5.714c0 .597.237 1.17.659 1.591L19.8 15.3M14.25 3.104c.251.023.501.05.75.082M19.8 15.3l-1.57.393A9.065 9.065 0 0112 15a9.065 9.065 0 00-6.23.693L5 14.5m14.8.8l1.402 1.402c1.232 1.232.65 3.318-1.067 3.611A48.309 48.309 0 0112 21c-2.773 0-5.491-.235-8.135-.687-1.718-.293-2.3-2.379-1.067-3.61L5 14.5" /></svg> },
@@ -13,47 +15,104 @@ const sidebarLinks = [
     { label: "Settings", href: "/patient/settings", icon: <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87.074.04.147.083.22.127.324.196.72.257 1.075.124l1.217-.456a1.125 1.125 0 011.37.49l1.296 2.247a1.125 1.125 0 01-.26 1.431l-1.003.827c-.293.24-.438.613-.431.992a6.759 6.759 0 010 .255c-.007.378.138.75.43.99l1.005.828c.424.35.534.954.26 1.43l-1.298 2.247a1.125 1.125 0 01-1.369.491l-1.217-.456c-.355-.133-.75-.072-1.076.124a6.57 6.57 0 01-.22.128c-.331.183-.581.495-.644.869l-.213 1.28c-.09.543-.56.941-1.11.941h-2.594c-.55 0-1.02-.398-1.11-.94l-.213-1.281c-.062-.374-.312-.686-.644-.87a6.52 6.52 0 01-.22-.127c-.325-.196-.72-.257-1.076-.124l-1.217.456a1.125 1.125 0 01-1.369-.49l-1.297-2.247a1.125 1.125 0 01.26-1.431l1.004-.827c.292-.24.437-.613.43-.992a6.932 6.932 0 010-.255c.007-.378-.138-.75-.43-.99l-1.004-.828a1.125 1.125 0 01-.26-1.43l1.297-2.247a1.125 1.125 0 011.37-.491l1.216.456c.356.133.751.072 1.076-.124.072-.044.146-.087.22-.128.332-.183.582-.495.644-.869l.214-1.281z" /><path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg> },
 ];
 
-const doctorCategories = [
-    {
-        category: "General Physician",
-        doctors: [
-            { name: "Dr. Anika Sharma", specialty: "General Medicine", rating: 4.8, patients: 1200, available: true },
-            { name: "Dr. Rajesh Patel", specialty: "Family Medicine", rating: 4.6, patients: 980, available: true },
-            { name: "Dr. Priya Menon", specialty: "Internal Medicine", rating: 4.9, patients: 1500, available: false },
-        ],
-    },
-    {
-        category: "Cardiologist",
-        doctors: [
-            { name: "Dr. Vikram Singh", specialty: "Cardiology", rating: 4.9, patients: 2100, available: true },
-            { name: "Dr. Neha Gupta", specialty: "Interventional Cardiology", rating: 4.7, patients: 1800, available: true },
-        ],
-    },
-    {
-        category: "Dermatologist",
-        doctors: [
-            { name: "Dr. Sneha Reddy", specialty: "Dermatology", rating: 4.8, patients: 1400, available: true },
-            { name: "Dr. Arjun Nair", specialty: "Cosmetic Dermatology", rating: 4.5, patients: 900, available: false },
-        ],
-    },
-    {
-        category: "Orthopedic",
-        doctors: [
-            { name: "Dr. Karan Malhotra", specialty: "Orthopedic Surgery", rating: 4.7, patients: 1600, available: true },
-            { name: "Dr. Deepa Joshi", specialty: "Sports Medicine", rating: 4.6, patients: 1100, available: true },
-        ],
-    },
-];
+interface DoctorInfo {
+    _id: string;
+    firstName: string;
+    lastName: string;
+}
+
+interface ClinicInfo {
+    _id: string;
+    name: string;
+    address: string;
+}
+
+interface QueueInfo {
+    _id: string;
+    doctorId: DoctorInfo;
+    clinicId: ClinicInfo;
+    currentToken: number;
+    status: "Open" | "Closed";
+    estimatedWaitPerPatient: number;
+}
+
+interface AvailableDoctor {
+    queue: QueueInfo;
+    waitingCount: number;
+    estimatedWait: number;
+}
 
 export default function DoctorsPage() {
     const pathname = usePathname();
     const [search, setSearch] = useState("");
     const [sidebarOpen, setSidebarOpen] = useState(false);
+    const [doctors, setDoctors] = useState<AvailableDoctor[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
+    const [joiningQueueId, setJoiningQueueId] = useState<string | null>(null);
+    const [joinSuccess, setJoinSuccess] = useState<{ queueId: string; tokenNumber: number; estimatedWait: number } | null>(null);
 
-    const filteredCategories = doctorCategories.map((cat) => ({
-        ...cat,
-        doctors: cat.doctors.filter((d) => d.name.toLowerCase().includes(search.toLowerCase()) || d.specialty.toLowerCase().includes(search.toLowerCase())),
-    })).filter((cat) => cat.doctors.length > 0);
+    // Fetch available doctors
+    useEffect(() => {
+        const fetchDoctors = async () => {
+            try {
+                const res = await fetch(`${API_BASE}/doctors/available`, {
+                    credentials: "include",
+                });
+                if (!res.ok) throw new Error("Failed to fetch available doctors");
+                const data = await res.json();
+                setDoctors(data.doctors || []);
+            } catch (err: any) {
+                setError(err.message);
+            } finally {
+                setLoading(false);
+            }
+        };
+        fetchDoctors();
+    }, []);
+
+    // Join queue
+    const handleJoinQueue = async (queueId: string) => {
+        setJoiningQueueId(queueId);
+        try {
+            const res = await fetch(`${API_BASE}/join`, {
+                method: "POST",
+                credentials: "include",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ queueId, type: "ONLINE" }),
+            });
+            if (!res.ok) {
+                const data = await res.json();
+                throw new Error(data.message || "Failed to join queue");
+            }
+            const data = await res.json();
+            setJoinSuccess({
+                queueId,
+                tokenNumber: data.tokenNumber,
+                estimatedWait: data.estimatedWait,
+            });
+            // Update waiting count locally
+            setDoctors((prev) =>
+                prev.map((d) =>
+                    d.queue._id === queueId
+                        ? { ...d, waitingCount: d.waitingCount + 1, estimatedWait: d.estimatedWait + d.queue.estimatedWaitPerPatient }
+                        : d
+                )
+            );
+        } catch (err: any) {
+            setError(err.message);
+        } finally {
+            setJoiningQueueId(null);
+        }
+    };
+
+    // Filter doctors by search
+    const filtered = doctors.filter((d) => {
+        const doctorName = `${d.queue.doctorId.firstName} ${d.queue.doctorId.lastName}`.toLowerCase();
+        const clinicName = d.queue.clinicId.name.toLowerCase();
+        const q = search.toLowerCase();
+        return doctorName.includes(q) || clinicName.includes(q);
+    });
 
     return (
         <div className="flex min-h-screen bg-bg-alt">
@@ -107,42 +166,130 @@ export default function DoctorsPage() {
                 {/* Content */}
                 <main className="flex-1 p-6 lg:p-8">
                     <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}>
-                        <h1 className="mb-1 text-2xl font-bold text-text-primary">Doctors</h1>
-                        <p className="mb-8 text-sm text-text-secondary">Browse and book appointments with specialists</p>
+                        <h1 className="mb-1 text-2xl font-bold text-text-primary">Available Doctors</h1>
+                        <p className="mb-8 text-sm text-text-secondary">Join a doctor&apos;s queue to get your token</p>
 
-                        {filteredCategories.length === 0 && (
-                            <div className="flex flex-col items-center justify-center py-20 text-center">
-                                <svg className="mb-4 h-12 w-12 text-text-muted" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1}><path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" /></svg>
-                                <p className="text-text-secondary">No doctors found for &ldquo;{search}&rdquo;</p>
+                        {/* Join Success Toast */}
+                        {joinSuccess && (
+                            <motion.div
+                                initial={{ opacity: 0, y: -10 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                className="mb-6 rounded-2xl border-2 border-accent-green/20 bg-accent-green-light p-5"
+                            >
+                                <div className="flex items-center gap-4">
+                                    <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-accent-green text-xl font-bold text-white shadow-lg shadow-accent-green/25">
+                                        #{joinSuccess.tokenNumber}
+                                    </div>
+                                    <div>
+                                        <p className="text-sm font-bold text-text-primary">You&apos;re in the queue!</p>
+                                        <p className="text-xs text-text-secondary">
+                                            Your token is <span className="font-bold">#{joinSuccess.tokenNumber}</span> · Estimated wait: <span className="font-bold">{joinSuccess.estimatedWait} min</span>
+                                        </p>
+                                    </div>
+                                    <button onClick={() => setJoinSuccess(null)} className="ml-auto text-xs font-semibold text-accent-green hover:underline cursor-pointer">
+                                        Dismiss
+                                    </button>
+                                </div>
+                            </motion.div>
+                        )}
+
+                        {error && (
+                            <div className="mb-6 rounded-xl bg-accent-red-light border border-accent-red/20 px-4 py-3 text-xs text-accent-red">
+                                {error}
+                                <button onClick={() => setError(null)} className="ml-2 font-semibold underline cursor-pointer">Dismiss</button>
                             </div>
                         )}
 
-                        {filteredCategories.map((cat, ci) => (
-                            <div key={cat.category} className="mb-10">
-                                <h2 className="mb-4 text-lg font-semibold text-text-primary">{cat.category}</h2>
-                                <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-                                    {cat.doctors.map((doc, di) => (
-                                        <motion.div key={doc.name} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3, delay: ci * 0.1 + di * 0.05 }} className="group rounded-2xl border border-border-light bg-white p-5 transition-all duration-200 hover:shadow-lg hover:shadow-primary/5 hover:-translate-y-0.5">
+                        {/* Loading */}
+                        {loading && (
+                            <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+                                {Array.from({ length: 6 }).map((_, i) => (
+                                    <div key={i} className="rounded-2xl border border-border-light bg-white p-5">
+                                        <div className="flex items-center gap-3 mb-4">
+                                            <div className="h-12 w-12 rounded-xl bg-bg-alt animate-pulse" />
+                                            <div className="flex-1 space-y-2">
+                                                <div className="h-4 w-32 rounded bg-bg-alt animate-pulse" />
+                                                <div className="h-3 w-20 rounded bg-bg-alt animate-pulse" />
+                                            </div>
+                                        </div>
+                                        <div className="h-10 w-full rounded-xl bg-bg-alt animate-pulse" />
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+
+                        {/* No doctors */}
+                        {!loading && filtered.length === 0 && (
+                            <div className="flex flex-col items-center justify-center py-20 text-center">
+                                <svg className="mb-4 h-12 w-12 text-text-muted" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1}>
+                                    <path strokeLinecap="round" strokeLinejoin="round" d="M9.75 3.104v5.714a2.25 2.25 0 01-.659 1.591L5 14.5M9.75 3.104c-.251.023-.501.05-.75.082m.75-.082a24.301 24.301 0 014.5 0m0 0v5.714c0 .597.237 1.17.659 1.591L19.8 15.3M14.25 3.104c.251.023.501.05.75.082" />
+                                </svg>
+                                <p className="text-text-secondary font-medium">
+                                    {search ? `No doctors found for "${search}"` : "No doctors are available right now"}
+                                </p>
+                                <p className="text-xs text-text-muted mt-1">Check back later or try a different search</p>
+                            </div>
+                        )}
+
+                        {/* Doctor cards */}
+                        {!loading && filtered.length > 0 && (
+                            <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+                                {filtered.map((item, i) => {
+                                    const doctor = item.queue.doctorId;
+                                    const clinic = item.queue.clinicId;
+                                    const doctorName = `Dr. ${doctor.firstName} ${doctor.lastName}`;
+                                    const initial = doctor.lastName?.[0] ?? doctor.firstName?.[0] ?? "D";
+                                    const alreadyJoined = joinSuccess?.queueId === item.queue._id;
+
+                                    return (
+                                        <motion.div
+                                            key={item.queue._id}
+                                            initial={{ opacity: 0, y: 20 }}
+                                            animate={{ opacity: 1, y: 0 }}
+                                            transition={{ duration: 0.3, delay: i * 0.05 }}
+                                            className="group rounded-2xl border border-border-light bg-white p-5 transition-all duration-200 hover:shadow-lg hover:shadow-primary/5 hover:-translate-y-0.5"
+                                        >
                                             <div className="mb-4 flex items-center gap-3">
-                                                <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-primary-50 text-primary font-bold text-lg">{doc.name.split(" ")[1]?.[0] ?? "D"}</div>
-                                                <div className="flex-1">
-                                                    <p className="font-semibold text-text-primary">{doc.name}</p>
-                                                    <p className="text-xs text-text-muted">{doc.specialty}</p>
+                                                <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-primary-50 text-primary font-bold text-lg">
+                                                    {initial}
                                                 </div>
-                                                <span className={`rounded-full px-2.5 py-1 text-[10px] font-semibold ${doc.available ? "bg-accent-green-light text-accent-green" : "bg-accent-red-light text-accent-red"}`}>{doc.available ? "Available" : "Busy"}</span>
+                                                <div className="flex-1">
+                                                    <p className="font-semibold text-text-primary">{doctorName}</p>
+                                                    <p className="text-xs text-text-muted">{clinic.name}</p>
+                                                </div>
+                                                <span className="rounded-full bg-accent-green-light px-2.5 py-1 text-[10px] font-semibold text-accent-green">
+                                                    Open
+                                                </span>
                                             </div>
                                             <div className="mb-4 flex items-center gap-4 text-xs text-text-muted">
-                                                <span className="flex items-center gap-1"><svg className="h-3.5 w-3.5 text-yellow-500" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" /></svg> {doc.rating}</span>
-                                                <span>{doc.patients.toLocaleString()} patients</span>
+                                                <span className="flex items-center gap-1">
+                                                    <svg className="h-3.5 w-3.5 text-amber-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                                                        <path strokeLinecap="round" strokeLinejoin="round" d="M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 018.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0111.964-3.07M12 6.375a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zm8.25 2.25a2.625 2.625 0 11-5.25 0 2.625 2.625 0 015.25 0z" />
+                                                    </svg>
+                                                    {item.waitingCount} in queue
+                                                </span>
+                                                <span>~{item.estimatedWait} min wait</span>
                                             </div>
-                                            <button className="w-full rounded-xl bg-primary px-4 py-2.5 text-xs font-semibold text-white shadow-sm shadow-primary/20 transition-all duration-200 hover:bg-primary-dark active:scale-[0.98] cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed" disabled={!doc.available}>
-                                                {doc.available ? "Book Appointment" : "Not Available"}
+                                            {clinic.address && (
+                                                <p className="mb-4 text-[11px] text-text-muted truncate">📍 {clinic.address}</p>
+                                            )}
+                                            <button
+                                                onClick={() => handleJoinQueue(item.queue._id)}
+                                                disabled={joiningQueueId === item.queue._id || alreadyJoined}
+                                                className="w-full rounded-xl bg-primary px-4 py-2.5 text-xs font-semibold text-white shadow-sm shadow-primary/20 transition-all duration-200 hover:bg-primary-dark active:scale-[0.98] cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                                            >
+                                                {alreadyJoined
+                                                    ? `Joined · Token #${joinSuccess?.tokenNumber}`
+                                                    : joiningQueueId === item.queue._id
+                                                        ? "Joining..."
+                                                        : "Join Queue"
+                                                }
                                             </button>
                                         </motion.div>
-                                    ))}
-                                </div>
+                                    );
+                                })}
                             </div>
-                        ))}
+                        )}
                     </motion.div>
                 </main>
             </div>

@@ -1,6 +1,18 @@
-import mongoose from 'mongoose';
+import mongoose, { Document } from 'mongoose';
 
-const userModel = new mongoose.Schema({
+export interface IUser extends Document {
+    firstName: string;
+    lastName: string;
+    phone: string;
+    email: string;
+    password: string;
+    role: "PATIENT" | "DOCTOR" | "RECEPTIONIST" | "ADMIN" | "PENDING_DOCTOR";
+    clinicId?: mongoose.Types.ObjectId;
+    createdAt: Date;
+    updatedAt: Date;
+}
+
+const userModel = new mongoose.Schema<IUser>({
     firstName: String,
     lastName: String,
     phone: String,
@@ -22,11 +34,11 @@ const userModel = new mongoose.Schema({
     clinicId: {
         type: mongoose.Schema.Types.ObjectId,
         ref: "Clinic",
-        required: function(){
+        required: function(this: IUser){
             return this.role !== "PATIENT" && this.role !== "PENDING_DOCTOR"
         }
     }
 }, { timestamps: true });
 
-export default mongoose.model("User", userModel);
+export default mongoose.model<IUser>("User", userModel);
 
