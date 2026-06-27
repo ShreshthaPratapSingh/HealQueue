@@ -23,20 +23,23 @@ export default function DoctorsPage() {
     // Track ALL queues the patient has joined (persists across refresh via API)
     const [joinedQueues, setJoinedQueues] = useState<Map<string, JoinedEntry>>(new Map());
 
-    // Fetch available doctors AND the patient's active queue entries on mount
+    // Fetch available doctors on mount
     useEffect(() => {
         const fetchData = async () => {
             try {
-                const [doctorsRes, entriesRes] = await Promise.all([
-                    fetch(`${API_BASE}/doctors/available`, { credentials: "include" }),
-                    fetch(`${API_BASE}/my-entries`, { credentials: "include" }),
-                ]);
-
+                const doctorsRes = await fetch(`${API_BASE}/doctors/available`, { credentials: "include" });
                 if (!doctorsRes.ok) throw new Error("Failed to fetch available doctors");
                 const doctorsData = await doctorsRes.json();
                 setDoctors(doctorsData.doctors || []);
+            } catch (err: any) {
+                setError(err.message);
+            } finally {
+                setLoading(false);
+            }
 
-                // Load existing active entries so the UI shows "already joined"
+            // Separately fetch the patient's active queue entries (best-effort, silent failure)
+            try {
+                const entriesRes = await fetch(`${API_BASE}/my-entries`, { credentials: "include" });
                 if (entriesRes.ok) {
                     const entriesData = await entriesRes.json();
                     const joined = new Map<string, JoinedEntry>();
@@ -48,12 +51,12 @@ export default function DoctorsPage() {
                             estimatedWait: entry.estimatedWait,
                         });
                     }
-                    setJoinedQueues(joined);
+                    if (joined.size > 0) {
+                        setJoinedQueues(joined);
+                    }
                 }
-            } catch (err: any) {
-                setError(err.message);
-            } finally {
-                setLoading(false);
+            } catch {
+                // Silent — backend duplicate check is the real guard
             }
         };
         fetchData();
@@ -77,6 +80,7 @@ export default function DoctorsPage() {
 
             if (res.status === 409) {
                 // Already in queue — not an error, just update UI to joined state
+                setError(null);
                 setJoinedQueues((prev) => {
                     const next = new Map(prev);
                     next.set(queueId, {

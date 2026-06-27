@@ -12,21 +12,38 @@ export function useAuth(allowedRole: string) {
                     credentials: "include",
                 });
 
-                if (!res.ok) {
+                // Only redirect to login on genuine auth failures (401)
+                if (res.status === 401) {
                     router.push("/login");
+                    return;
+                }
+
+                // On server errors (5xx), don't logout — the token might be valid,
+                // the server is just having issues. Let the page load.
+                if (!res.ok) {
+                    console.warn(`Auth check returned ${res.status}, not logging out`);
+                    setLoading(false);
                     return;
                 }
 
                 const data = await res.json();
 
+                // Role mismatch — redirect to the correct dashboard, not /login
                 if (data.user.role !== allowedRole) {
-                    router.push("/login");
+                    const rolePath = data.user.role.toLowerCase();
+                    // If the user is authenticated but wrong role, send them
+                    // to their own dashboard instead of login
+                    router.push(`/${rolePath}`);
                     return;
                 }
 
                 setLoading(false);
             } catch {
-                router.push("/login");
+                // Network error (server is down, timeout, etc.)
+                // Do NOT redirect to login — the JWT may be perfectly valid.
+                // Just let the page load so the user isn't kicked out.
+                console.warn("Auth check failed (network error), not logging out");
+                setLoading(false);
             }
         };
         checkAuth();

@@ -3,10 +3,15 @@
 import { useState } from "react";
 import Sidebar from "@/components/layout/Sidebar";
 import TopBar from "@/components/layout/TopBar";
+import { FullPageSpinner } from "@/components/ui/LoadingSkeleton";
 import { patientSidebarLinks } from "@/config/sidebarLinks";
+import { useAuth } from "@/hooks/useAuth";
 
 export default function PatientLayout({ children }: { children: React.ReactNode }) {
+  const { loading } = useAuth("PATIENT");
   const [sidebarOpen, setSidebarOpen] = useState(false);
+
+  if (loading) return <FullPageSpinner />;
 
   return (
     <div className="flex min-h-screen bg-bg-alt">
