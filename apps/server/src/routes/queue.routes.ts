@@ -7,7 +7,8 @@ import {
     nextPatient,
     skipPatient,
     closeQueue,
-    getAvailableDoctors
+    getAvailableDoctors,
+    getMyActiveEntries
 } from "../controllers/queue.controller.js";
 import { protect } from "../middlewares/auth.middleware.js";
 import { authorize } from "../middlewares/role.middleware.js";
@@ -23,6 +24,7 @@ router.patch("/:id/close", protect, authorize("DOCTOR"), closeQueue);
 router.get("/:id/entries", protect, authorize("DOCTOR"), getQueueEntries);
 
 router.get("/doctors/available", protect, getAvailableDoctors);
+router.get("/my-entries", protect, getMyActiveEntries);
 router.get("/:id", protect, getQueue);
 
 export default router;

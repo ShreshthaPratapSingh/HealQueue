@@ -8,33 +8,62 @@ import type { AvailableDoctor } from "@/types/queue.types";
 
 const API_BASE = "http://localhost:5000/api/queue";
 
+interface JoinedEntry {
+    queueId: string;
+    tokenNumber: number;
+    estimatedWait: number;
+}
+
 export default function DoctorsPage() {
     const [search, setSearch] = useState("");
     const [doctors, setDoctors] = useState<AvailableDoctor[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [joiningQueueId, setJoiningQueueId] = useState<string | null>(null);
-    const [joinSuccess, setJoinSuccess] = useState<{ queueId: string; tokenNumber: number; estimatedWait: number } | null>(null);
+    // Track ALL queues the patient has joined (persists across refresh via API)
+    const [joinedQueues, setJoinedQueues] = useState<Map<string, JoinedEntry>>(new Map());
 
-    // Fetch available doctors
+    // Fetch available doctors AND the patient's active queue entries on mount
     useEffect(() => {
-        const fetchDoctors = async () => {
+        const fetchData = async () => {
             try {
-                const res = await fetch(`${API_BASE}/doctors/available`, { credentials: "include" });
-                if (!res.ok) throw new Error("Failed to fetch available doctors");
-                const data = await res.json();
-                setDoctors(data.doctors || []);
+                const [doctorsRes, entriesRes] = await Promise.all([
+                    fetch(`${API_BASE}/doctors/available`, { credentials: "include" }),
+                    fetch(`${API_BASE}/my-entries`, { credentials: "include" }),
+                ]);
+
+                if (!doctorsRes.ok) throw new Error("Failed to fetch available doctors");
+                const doctorsData = await doctorsRes.json();
+                setDoctors(doctorsData.doctors || []);
+
+                // Load existing active entries so the UI shows "already joined"
+                if (entriesRes.ok) {
+                    const entriesData = await entriesRes.json();
+                    const joined = new Map<string, JoinedEntry>();
+                    for (const entry of entriesData.entries || []) {
+                        const qId = typeof entry.queueId === "object" ? entry.queueId._id : entry.queueId;
+                        joined.set(qId, {
+                            queueId: qId,
+                            tokenNumber: entry.tokenNumber,
+                            estimatedWait: entry.estimatedWait,
+                        });
+                    }
+                    setJoinedQueues(joined);
+                }
             } catch (err: any) {
                 setError(err.message);
             } finally {
                 setLoading(false);
             }
         };
-        fetchDoctors();
+        fetchData();
     }, []);
 
     // Join queue
     const handleJoinQueue = async (queueId: string) => {
+        // Prevent double-click: already joining or already joined
+        if (joiningQueueId || joinedQueues.has(queueId)) return;
+
         setJoiningQueueId(queueId);
         try {
             const res = await fetch(`${API_BASE}/join`, {
@@ -43,12 +72,37 @@ export default function DoctorsPage() {
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ queueId, type: "ONLINE" }),
             });
+
+            const data = await res.json();
+
+            if (res.status === 409) {
+                // Already in queue — not an error, just update UI to joined state
+                setJoinedQueues((prev) => {
+                    const next = new Map(prev);
+                    next.set(queueId, {
+                        queueId,
+                        tokenNumber: data.tokenNumber,
+                        estimatedWait: data.estimatedWait,
+                    });
+                    return next;
+                });
+                return;
+            }
+
             if (!res.ok) {
-                const data = await res.json();
                 throw new Error(data.message || "Failed to join queue");
             }
-            const data = await res.json();
-            setJoinSuccess({ queueId, tokenNumber: data.tokenNumber, estimatedWait: data.estimatedWait });
+
+            // Successfully joined
+            setJoinedQueues((prev) => {
+                const next = new Map(prev);
+                next.set(queueId, {
+                    queueId,
+                    tokenNumber: data.tokenNumber,
+                    estimatedWait: data.estimatedWait,
+                });
+                return next;
+            });
             setDoctors((prev) =>
                 prev.map((d) =>
                     d.queue._id === queueId
@@ -70,6 +124,9 @@ export default function DoctorsPage() {
         const q = search.toLowerCase();
         return doctorName.includes(q) || clinicName.includes(q);
     });
+
+    // Find the most recently joined queue to show in the success toast
+    const latestJoined = joinedQueues.size > 0 ? Array.from(joinedQueues.values()).pop() : null;
 
     return (
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}>
@@ -96,19 +153,18 @@ export default function DoctorsPage() {
             </div>
 
             {/* Join Success Toast */}
-            {joinSuccess && (
+            {latestJoined && (
                 <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="mb-6 rounded-2xl border-2 border-accent-green/20 bg-accent-green-light p-5">
                     <div className="flex items-center gap-4">
                         <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-accent-green text-xl font-bold text-white shadow-lg shadow-accent-green/25">
-                            #{joinSuccess.tokenNumber}
+                            #{latestJoined.tokenNumber}
                         </div>
                         <div>
                             <p className="text-sm font-bold text-text-primary">You&apos;re in the queue!</p>
                             <p className="text-xs text-text-secondary">
-                                Your token is <span className="font-bold">#{joinSuccess.tokenNumber}</span> · Estimated wait: <span className="font-bold">{joinSuccess.estimatedWait} min</span>
+                                Your token is <span className="font-bold">#{latestJoined.tokenNumber}</span> · Estimated wait: <span className="font-bold">{latestJoined.estimatedWait} min</span>
                             </p>
                         </div>
-                        <button onClick={() => setJoinSuccess(null)} className="ml-auto text-xs font-semibold text-accent-green hover:underline cursor-pointer">Dismiss</button>
                     </div>
                 </motion.div>
             )}
@@ -141,7 +197,8 @@ export default function DoctorsPage() {
                         const clinic = item.queue.clinicId;
                         const doctorName = `Dr. ${doctor.firstName} ${doctor.lastName}`;
                         const initial = doctor.lastName?.[0] ?? doctor.firstName?.[0] ?? "D";
-                        const alreadyJoined = joinSuccess?.queueId === item.queue._id;
+                        const joinedEntry = joinedQueues.get(item.queue._id);
+                        const alreadyJoined = !!joinedEntry;
 
                         return (
                             <motion.div
@@ -172,9 +229,17 @@ export default function DoctorsPage() {
                                 <button
                                     onClick={() => handleJoinQueue(item.queue._id)}
                                     disabled={joiningQueueId === item.queue._id || alreadyJoined}
-                                    className="w-full rounded-xl bg-primary px-4 py-2.5 text-xs font-semibold text-white shadow-sm shadow-primary/20 transition-all duration-200 hover:bg-primary-dark active:scale-[0.98] cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                                    className={`w-full rounded-xl px-4 py-2.5 text-xs font-semibold shadow-sm transition-all duration-200 active:scale-[0.98] cursor-pointer disabled:cursor-not-allowed ${
+                                        alreadyJoined
+                                            ? "bg-accent-green text-white shadow-accent-green/20 disabled:opacity-90"
+                                            : "bg-primary text-white shadow-primary/20 hover:bg-primary-dark disabled:opacity-50"
+                                    }`}
                                 >
-                                    {alreadyJoined ? `Joined · Token #${joinSuccess?.tokenNumber}` : joiningQueueId === item.queue._id ? "Joining..." : "Join Queue"}
+                                    {alreadyJoined
+                                        ? `Joined · Token #${joinedEntry!.tokenNumber}`
+                                        : joiningQueueId === item.queue._id
+                                            ? "Joining..."
+                                            : "Join Queue"}
                                 </button>
                             </motion.div>
                         );

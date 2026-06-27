@@ -23,6 +23,22 @@ export const joinQueue = async (
             })
         }
 
+        // Check if the patient already has an active entry in this queue
+        const existingEntry = await QueueEntry.findOne({
+            queueId: new mongoose.Types.ObjectId(queueId),
+            patientId: new mongoose.Types.ObjectId(patientId),
+            status: { $in: ["WAITING", "SERVING"] },
+        });
+
+        if (existingEntry) {
+            return res.status(409).json({
+                message: "You are already in this queue",
+                tokenNumber: existingEntry.tokenNumber,
+                estimatedWait: existingEntry.estimatedWait,
+                entry: existingEntry,
+            });
+        }
+
         const lastEntry = await QueueEntry.findOne({
             queueId: new mongoose.Types.ObjectId(queueId),
         }).sort({ tokenNumber: -1 });
@@ -46,10 +62,47 @@ export const joinQueue = async (
             entry,
         });
     }
-    catch (err) {
+    catch (err: any) {
+        // Handle race condition: MongoDB duplicate key error from partial unique index
+        if (err.code === 11000) {
+            const existingEntry = await QueueEntry.findOne({
+                queueId: new mongoose.Types.ObjectId(req.body.queueId),
+                patientId: new mongoose.Types.ObjectId(req.user.id),
+                status: { $in: ["WAITING", "SERVING"] },
+            });
+            return res.status(409).json({
+                message: "You are already in this queue",
+                tokenNumber: existingEntry?.tokenNumber,
+                estimatedWait: existingEntry?.estimatedWait,
+                entry: existingEntry,
+            });
+        }
         res.status(500).json({
             message: "Server error",
         });
+    }
+}
+
+// Get all active queue entries for the authenticated patient
+export const getMyActiveEntries = async (
+    req: Request,
+    res: Response,
+) => {
+    try {
+        const patientId = req.user.id;
+        const entries = await QueueEntry.find({
+            patientId: new mongoose.Types.ObjectId(patientId),
+            status: { $in: ["WAITING", "SERVING"] },
+        }).populate({
+            path: "queueId",
+            populate: [
+                { path: "doctorId", select: "firstName lastName" },
+                { path: "clinicId", select: "name address" },
+            ],
+        });
+        return res.status(200).json({ entries });
+    } catch (err) {
+        res.status(500).json({ message: "Server error" });
     }
 }
 
